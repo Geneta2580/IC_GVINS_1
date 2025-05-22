@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # IC-GVINS
 
 ## A Robust, Real-time, INS-Centric GNSS-Visual-Inertial Navigation System
@@ -177,3 +178,7 @@ The source code is released under GPLv3 license.
 We are still working on improving the code. For any technical issues, please contact Dr. Hailiang Tang ([thl@whu.edu.cn](mailto:thl@whu.edu.cn)) or open an issue at this repository.
 
 For commercial usage, please contact Prof. Xiaoji Niu ([xjniu@whu.edu.cn](mailto:xjniu@whu.edu.cn)).
+=======
+# IC_GVINS_1
+基于武大i2Nav团队IC-GVINS框架进行开发，原项目地址为https://github.com/i2Nav-WHU/IC-GVINS
+>>>>>>> bdaee54ca73efc6c866401a0a2c6fc7f38b9f4f3

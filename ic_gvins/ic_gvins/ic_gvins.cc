@@ -66,6 +66,7 @@ GVINS::GVINS(const string &configfile, const string &outputpath, Drawer::Ptr dra
     imuerrfilesaver_ = FileSaver::create(outputpath + "/IMU_ERR.bin", 7, FileSaver::BINARY);
     trajfilesaver_   = FileSaver::create(outputpath + "/trajectory.csv", 8);
     gnsserrfilesaver_ = FileSaver::create(outputpath + "/GNSS_ERR.csv", 5); // 2025添加GNSS量测因子残差输出
+    gnsslasterrfilesaver_ = FileSaver::create(outputpath + "/GNSS_Last_ERR.csv", 5); // 2025添加第二轮GNSS量测因子残差输出
 
     if (!navfilesaver_->isOpen() || !ptsfilesaver_->isOpen() || !statfilesaver_->isOpen() || !extfilesaver_->isOpen()) {
         LOGE << "Failed to open data file";
@@ -1205,7 +1206,7 @@ bool GVINS::gvinsOptimization() {
         }
 
         // Add GNSS Factors without loss function
-        addGnssFactors(problem, false); // 不使用核函数，因为误差经过重新加权
+        addGnssFactors(problem, false); // 不使用核函数，因为误差经过重新加权，可以试试使用核函数
     }
 
     // 第二次优化
@@ -1261,21 +1262,43 @@ void GVINS::gnssOutlierCullingByChi2(ceres::Problem &problem,
 
         std::vector<double> residuals;
         problem.Evaluate(options, &cost, &residuals, nullptr, nullptr); 
-        LOGI << "GNSS error: " << cost; // 输出GNSS量测残差
+        // LOGI << "GNSS error: " << residuals; // 输出GNSS量测残差
 
         chi2 = cost * 2; // 利用单残差块平方的0.5*2作为待检验值？
 
         if (chi2 > chi2_threshold) {
             // Reweigthed GNSS
             double scale = sqrt(chi2 / chi2_threshold);
+
+            // 指数权重
+            // double scale = (1 + exp(0.01*(chi2 - chi2_threshold))) / 2;
+            
+            // IGG-III权重
+            // double scale;
+            // if(chi2 < 2 * chi2_threshold) {
+            //     scale = (chi2_threshold * chi2) / pow((2*chi2_threshold - chi2), 2);
+            // }
+
+            // else {scale = 1000;}
+
+            // 自定义权重
+            // double scale;
+            // if(chi2 < 4 * chi2_threshold) {
+            //     scale = sqrt(chi2 / chi2_threshold);
+            // }
+
+            // else {
+            //     scale = sqrt(10 * chi2 / chi2_threshold);
+            // }
+
             gnss->std *= scale;
 
-            LOGI << "scale: " << scale;
+            // LOGI << "scale: " << scale;
 
             outliers_counts++;
         }
 
-        MISC::writeGNSSerrResult(timelist_.back(), chi2, gnss->std, gnsserrfilesaver_); // 2025添加GNSS量测因子残差输出
+        MISC::writeGNSSerrResult(timelist_.back(), chi2, gnss->std, residuals, gnsserrfilesaver_); // 2025添加GNSS量测因子残差输出
     }
 
     if (outliers_counts) {
@@ -1926,6 +1949,17 @@ vector<std::pair<ceres::ResidualBlockId, GNSS *>> GVINS::addGnssFactors(ceres::P
             auto factor = new GnssFactor(data, antlever_);
             auto id     = problem.AddResidualBlock(factor, loss_function, statedatalist_[index].pose);
             residual_block.push_back(std::make_pair(id, &data));
+
+            if (!isusekernel) { // 当第二次进入优化前，不使用核函数，第一次进入优化前，使用核函数
+                ceres::Problem::EvaluateOptions options;
+                options.residual_blocks.push_back(id);
+                options.apply_loss_function = false;
+
+                std::vector<double> residuals;
+                double cost;
+                problem.Evaluate(options, &cost, &residuals, nullptr, nullptr);
+                MISC::writeLastGNSSerrResult(timelist_.back(), 2*cost, residuals, gnsslasterrfilesaver_); // 2025添加GNSS量测因子残差输出
+            }
         }
     }
 

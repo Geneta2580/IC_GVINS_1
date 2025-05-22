@@ -264,6 +264,7 @@ private:
     FileSaver::Ptr extfilesaver_;
     FileSaver::Ptr trajfilesaver_;
     FileSaver::Ptr gnsserrfilesaver_;
+    FileSaver::Ptr gnsslasterrfilesaver_;
 
     // 系统状态
     // System state

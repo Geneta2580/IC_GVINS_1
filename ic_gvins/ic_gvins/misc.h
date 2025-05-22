@@ -68,6 +68,9 @@ public:
                                const FileSaver::Ptr &trajfile);
 
     static void writeGNSSerrResult(const double time, const double gnss_err, Vector3d weight,
+        std::vector<double> residuals, const FileSaver::Ptr &gnsserrfile);
+
+    static void writeLastGNSSerrResult(const double time, const double gnss_err, std::vector<double> residuals, 
         const FileSaver::Ptr &gnsserrfile);
 
 public:

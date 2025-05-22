@@ -500,6 +500,41 @@ void MISC::writeNavResult(const IntegrationConfiguration &config, const Integrat
 }
 
 void MISC::writeGNSSerrResult(const double time, const double gnss_err, Vector3d weight,
+    std::vector<double> residuals, const FileSaver::Ptr &gnsserrfile) {
+
+    static int counts = 0;
+    if (counts++ % 10) {
+        return;
+    }
+
+    vector<double> result;
+    
+    {
+        // gnss_err file
+        result.clear();
+
+        // GNSS时间
+        result.push_back(time);
+
+        // GNSS残差平方
+        result.push_back(gnss_err);
+
+        // GNSS动态调整的均方差
+        result.push_back(weight[0]);
+        result.push_back(weight[1]);
+        result.push_back(weight[2]);
+        
+        // GNSS量测残差
+        result.push_back(residuals[0]);
+        result.push_back(residuals[1]);
+        result.push_back(residuals[2]);
+    
+        gnsserrfile->dump(result);
+        gnsserrfile->flush();
+    }
+}
+
+void MISC::writeLastGNSSerrResult(const double time, const double gnss_err, std::vector<double> residuals, 
     const FileSaver::Ptr &gnsserrfile) {
 
     static int counts = 0;
@@ -513,11 +548,17 @@ void MISC::writeGNSSerrResult(const double time, const double gnss_err, Vector3d
         // gnss_err file
         result.clear();
 
+        // GNSS时间
         result.push_back(time);
+
+        // GNSS残差平方
         result.push_back(gnss_err);
-        result.push_back(weight[0]);
-        result.push_back(weight[1]);
-        result.push_back(weight[2]);
+        
+        // GNSS量测残差
+        result.push_back(residuals[0]);
+        result.push_back(residuals[1]);
+        result.push_back(residuals[2]);
+    
         gnsserrfile->dump(result);
         gnsserrfile->flush();
     }
