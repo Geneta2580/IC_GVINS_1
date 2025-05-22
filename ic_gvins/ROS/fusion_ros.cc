@@ -54,10 +54,11 @@ void FusionROS::run() {
     ros::NodeHandle pnh("~");
 
     // message topic
-    string imu_topic, gnss_topic, image_topic, livox_topic;
+    string imu_topic, gnss_topic, image_topic, livox_topic, gnss_err_topic;
     pnh.param<string>("imu_topic", imu_topic, "/imu0");
     pnh.param<string>("gnss_topic", gnss_topic, "/gnss0");
     pnh.param<string>("image_topic", image_topic, "/cam0");
+    pnh.param<string>("gnss_err_topic", gnss_err_topic, "/gnss_err");
 
     // GVINS parameter
     string configfile;
@@ -113,6 +114,7 @@ void FusionROS::run() {
     ros::Subscriber imu_sub   = nh.subscribe<sensor_msgs::Imu>(imu_topic, 200, &FusionROS::imuCallback, this);
     ros::Subscriber gnss_sub  = nh.subscribe<sensor_msgs::NavSatFix>(gnss_topic, 1, &FusionROS::gnssCallback, this);
     ros::Subscriber image_sub = nh.subscribe<sensor_msgs::Image>(image_topic, 20, &FusionROS::imageCallback, this);
+    gnss_err_pub_ = nh.advertise<std_msgs::Float32>("gnss_err_topic", 10);
 
     LOGI << "Waiting ROS message...";
 
@@ -188,7 +190,7 @@ void FusionROS::gnssCallback(const sensor_msgs::NavSatFixConstPtr &gnssmsg) {
     bool isoutage = false;
     if ((gnss_.std[0] < gnssthreshold_) && (gnss_.std[1] < gnssthreshold_) && (gnss_.std[2] < gnssthreshold_)) {
 
-        if (isusegnssoutage_ && (weeksec >= gnssoutagetime_)) {
+        if (isusegnssoutage_ && (weeksec >= gnssoutagetime_)) { // GNSS量测超时判断
             isoutage = true;
         }
 
@@ -197,6 +199,9 @@ void FusionROS::gnssCallback(const sensor_msgs::NavSatFixConstPtr &gnssmsg) {
             gvins_->addNewGnss(gnss_);
         }
     }
+
+    // Publish the GNSS cost
+    publishGnssCost(); // 由于是在新增gnss后加入此函数，因此不用考虑重复发布的问题？
 }
 
 void FusionROS::imageCallback(const sensor_msgs::ImageConstPtr &imagemsg) {
@@ -232,6 +237,15 @@ void FusionROS::imageCallback(const sensor_msgs::ImageConstPtr &imagemsg) {
 
     LOG_EVERY_N(INFO, 20) << "Raw data time " << Logging::doubleData(imu_.time) << ", "
                           << Logging::doubleData(gnss_.time) << ", " << Logging::doubleData(frame_->stamp());
+}
+
+void FusionROS::publishGnssCost() {
+    // Publish 2*cost
+    std_msgs::Float32 cost_msg;
+    if(gvins_->getGNSSlastERR_flag()) {
+        cost_msg.data = gvins_->getGNSSlastERR();
+        gnss_err_pub_.publish(cost_msg);
+    }
 }
 
 void sigintHandler(int sig) {

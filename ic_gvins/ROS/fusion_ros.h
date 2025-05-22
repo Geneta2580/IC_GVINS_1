@@ -31,6 +31,7 @@
 #include <sensor_msgs/Imu.h>
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/image_encodings.h>
+#include <std_msgs/Float32.h>
 
 #include <memory>
 
@@ -50,6 +51,8 @@ private:
 
     void imageCallback(const sensor_msgs::ImageConstPtr &imagemsg);
 
+    void publishGnssCost(); // 发布GNSS残差节点
+
 private:
     std::shared_ptr<GVINS> gvins_;
 
@@ -63,6 +66,8 @@ private:
 
     std::queue<IMU> imu_buffer_;
     std::queue<Frame::Ptr> frame_buffer_;
+
+    ros::Publisher gnss_err_pub_; // 发布GNSS残差节点
 };
 
 #endif // FUSION_ROS_H

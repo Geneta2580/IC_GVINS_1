@@ -74,6 +74,14 @@ public:
         return gvinsstate_;
     }
 
+    double getGNSSlastERR() {
+        return gnsslasterr_;
+    }
+
+    bool getGNSSlastERR_flag() {
+        return gnsslasterr_flag_;
+    }
+
 private:
     void parametersStatistic();
 
@@ -272,6 +280,12 @@ private:
 
     // 优化轮次
     int idx = 0;
+
+    // 输出gnss第二次优化量测误差
+    double gnsslasterr_;
+
+    // 读取位，防止重复读数
+    bool gnsslasterr_flag_ = false;
 };
 
 #endif // GVINS_GVINS_H
