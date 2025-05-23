@@ -1959,7 +1959,7 @@ vector<std::pair<ceres::ResidualBlockId, GNSS *>> GVINS::addGnssFactors(ceres::P
                 double cost;
                 problem.Evaluate(options, &cost, &residuals, nullptr, nullptr);
                 gnsslasterr_ = 2*cost;
-                gnsslasterr_flag_ = !gnsslasterr_flag_; // 读取位翻转，防止重复读数
+                gnsslasterr_stamps_ = timelist_.back();
                 MISC::writeLastGNSSerrResult(timelist_.back(), 2*cost, residuals, gnsslasterrfilesaver_); // 2025添加GNSS量测因子残差输出
             }
         }

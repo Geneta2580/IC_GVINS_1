@@ -78,8 +78,16 @@ public:
         return gnsslasterr_;
     }
 
+    double getGNSSlastERR_stamps() {
+        return gnsslasterr_stamps_;
+    }
+
     bool getGNSSlastERR_flag() {
         return gnsslasterr_flag_;
+    }
+
+    void setGNSSlastERR_flag(bool gnsslasterr_flag) {
+        gnsslasterr_flag_ = gnsslasterr_flag;
     }
 
 private:
@@ -283,6 +291,7 @@ private:
 
     // 输出gnss第二次优化量测误差
     double gnsslasterr_;
+    double gnsslasterr_stamps_;
 
     // 读取位，防止重复读数
     bool gnsslasterr_flag_ = false;

@@ -32,6 +32,7 @@
 #include <sensor_msgs/NavSatFix.h>
 #include <sensor_msgs/image_encodings.h>
 #include <std_msgs/Float32.h>
+#include <std_msgs/Float32MultiArray.h>
 
 #include <memory>
 
@@ -63,6 +64,7 @@ private:
     bool isusegnssoutage_{false};
     double gnssoutagetime_{0};
     double gnssthreshold_{20.0};
+    bool flag_last = false; // 上一时刻gnss_err标志位
 
     std::queue<IMU> imu_buffer_;
     std::queue<Frame::Ptr> frame_buffer_;
