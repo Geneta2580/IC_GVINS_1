@@ -206,7 +206,7 @@ bool GVINS::addNewGnss(const GNSS &gnss) {
     if (integration_config_.origin.isZero()) {
         // 站心原点
         // The origin of the world frame
-        integration_config_.origin       = gnss.blh;
+        integration_config_.origin       = gnss.blh; // 只更新一次，所以全局坐标系的原点为第一个点的blh坐标点
         integration_parameters_->gravity = Earth::gravity(gnss.blh);
         LOGI << "Local gravity is initialized as " << Logging::doubleData(integration_parameters_->gravity);
     } else {
@@ -215,7 +215,7 @@ bool GVINS::addNewGnss(const GNSS &gnss) {
     }
 
     gnss_        = gnss;
-    gnss_.blh    = Earth::global2local(integration_config_.origin, gnss_.blh); // 世界坐标系转换为局部坐标系
+    gnss_.blh    = Earth::global2local(integration_config_.origin, gnss_.blh); // 世界坐标系转换为以第一个点坐标为原点的局部坐标系
     isgnssready_ = true;
 
     return true;

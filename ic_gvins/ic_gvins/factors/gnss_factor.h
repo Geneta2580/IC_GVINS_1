@@ -47,7 +47,7 @@ public:
 
         Eigen::Map<Eigen::Matrix<double, 3, 1>> error(residuals);
 
-        error = p + q.toRotationMatrix() * lever_ - gnss_.blh;
+        error = p + q.toRotationMatrix() * lever_ - gnss_.blh; // 这里的gnss.blh已经是局部坐标系了，因为前面addNewGNSS里做过转换
 
         Matrix3d sqrt_info_ = Matrix3d::Zero();
         sqrt_info_(0, 0)    = 1.0 / gnss_.std[0]; // 信息矩阵赋值，std分别对应GNSS量测的0\4\8位
